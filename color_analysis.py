@@ -6,6 +6,13 @@ def detect_face(image):
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    for (x, y, w, h) in faces:
+        cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            
+    cv2.imshow('Image', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    
     return faces
 
 def extract_skin(image, face):
@@ -16,25 +23,31 @@ def extract_skin(image, face):
     upper_skin = np.array([20, 255, 255], dtype=np.uint8)
     mask = cv2.inRange(hsv_img, lower_skin, upper_skin)
     skin = cv2.bitwise_and(face_img, face_img, mask=mask)
+    
+    # Show the image of the extracted skin
+    # cv2.imshow('Skin', skin)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    
     return skin
 
 def analyze_undertone(skin):
     # Convert the skin region to the LAB color space
-    # Convert the skin region to a different color space
-    # For example, you can try converting to the RGB color space
-    rgb_skin = cv2.cvtColor(skin, cv2.COLOR_BGR2RGB)
-    r, g, b = cv2.split(rgb_skin)
+    lab_skin = cv2.cvtColor(skin, cv2.COLOR_BGR2LAB)
+    l, a, b = cv2.split(lab_skin)
     
     # Compute the average color values
-    avg_r = np.mean(r)
-    avg_g = np.mean(g)
+    avg_a = np.mean(a)
     avg_b = np.mean(b)
     
     # Determine the undertone based on average LAB values
-    if avg_b > avg_r and avg_b > avg_g:
-        return "Cool Undertone"
+    if avg_a > avg_b:
+        undertone = "Warm Undertone"
     else:
-        return "Warm Undertone"
+        undertone = "Cool Undertone"
+    
+    # print("Analyzed Undertone:", undertone)
+    return undertone
 
 def main(image_path):
     image = cv2.imread(image_path)
@@ -50,5 +63,5 @@ def main(image_path):
         print(f"Detected Undertone: {undertone}")
 
 if __name__ == "__main__":
-    image_path = 'face_3.png'  # Replace with your image path
+    image_path = 'face_2.png'  # Replace with your image path
     main(image_path)
